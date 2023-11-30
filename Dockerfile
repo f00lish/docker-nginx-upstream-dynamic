@@ -3,12 +3,12 @@ MAINTAINER Yuki Kodama endflow.net@gmail.com
 
 ARG VERSION
 
-RUN apk update && apk add git \
+RUN echo -e 'https://mirrors.aliyun.com/alpine/v3.6/main/\nhttps://mirrors.aliyun.com/alpine/v3.6/community/' > /etc/apk/repositories \
+        && apk update && apk add git \
 	&& mkdir /usr/src \
 	&& git clone https://github.com/GUI/nginx-upstream-dynamic-servers.git /usr/src/nginx-upstream-dynamic-servers
 
-RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
-	&& CONFIG="\
+RUN CONFIG="\
 	--prefix=/etc/nginx \
 	--sbin-path=/usr/sbin/nginx \
 	--modules-path=/usr/lib/nginx/modules \
@@ -72,21 +72,6 @@ RUN GPG_KEYS=B0F4253373F8F6F510D42178520A9993A1C052F8 \
 	geoip-dev \
 	perl-dev \
 	&& curl -fSL http://nginx.org/download/nginx-$VERSION.tar.gz -o nginx.tar.gz \
-	&& curl -fSL http://nginx.org/download/nginx-$VERSION.tar.gz.asc  -o nginx.tar.gz.asc \
-	&& export GNUPGHOME="$(mktemp -d)" \
-	&& found=''; \
-	for server in \
-	ha.pool.sks-keyservers.net \
-	hkp://keyserver.ubuntu.com:80 \
-	hkp://p80.pool.sks-keyservers.net:80 \
-	pgp.mit.edu \
-	; do \
-	echo "Fetching GPG key $GPG_KEYS from $server"; \
-	gpg --keyserver "$server" --keyserver-options timeout=10 --recv-keys "$GPG_KEYS" && found=yes && break; \
-	done; \
-	test -z "$found" && echo >&2 "error: failed to fetch GPG key $GPG_KEYS" && exit 1; \
-	gpg --batch --verify nginx.tar.gz.asc nginx.tar.gz \
-	&& rm -r "$GNUPGHOME" nginx.tar.gz.asc \
 	&& mkdir -p /usr/src \
 	&& tar -zxC /usr/src -f nginx.tar.gz \
 	&& rm nginx.tar.gz \
