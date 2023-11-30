@@ -1,12 +1,13 @@
 FROM alpine:3.11.3
-MAINTAINER Yuki Kodama endflow.net@gmail.com
+MAINTAINER HRQ f00lish@qq.com
 
 ARG VERSION
 
 RUN echo -e 'https://mirrors.aliyun.com/alpine/v3.6/main/\nhttps://mirrors.aliyun.com/alpine/v3.6/community/' > /etc/apk/repositories \
-        && apk update && apk add git \
+    && apk update && apk add git \
 	&& mkdir /usr/src \
-	&& git clone https://github.com/GUI/nginx-upstream-dynamic-servers.git /usr/src/nginx-upstream-dynamic-servers
+	&& git clone https://github.com/GUI/nginx-upstream-dynamic-servers.git /usr/src/nginx-upstream-dynamic-servers \
+	&& git clone --depth 1 --single-branch --branch master https://github.com/nginx-modules/nginx_upstream_check_module /usr/src/nginx_upstream_check_module
 
 RUN CONFIG="\
 	--prefix=/etc/nginx \
@@ -54,6 +55,7 @@ RUN CONFIG="\
 	--with-file-aio \
 	--with-http_v2_module \
 	--add-module=/usr/src/nginx-upstream-dynamic-servers \
+	--add-module=/usr/src/nginx_upstream_check_module \
 	" \
 	&& addgroup -S nginx \
 	&& adduser -D -S -h /var/cache/nginx -s /sbin/nologin -G nginx nginx \
@@ -103,6 +105,7 @@ RUN CONFIG="\
 	&& strip /usr/lib/nginx/modules/*.so \
 	&& rm -rf /usr/src/nginx-$VERSION \
 	&& rm -rf /usr/src/nginx-upstream-dynamic-servers \
+	&& rm -rf /usr/src/nginx_upstream_check_module \
 	\
 	# Bring in gettext so we can get `envsubst`, then throw
 	# the rest away. To do this, we need to install `gettext`
